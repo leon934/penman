@@ -124,7 +124,6 @@ const mergedComponents = {
 
 const App: React.FC = () => {
     return (
-
         <div style={{ position: 'fixed', inset: 0 }}>
 		    <Tldraw 
                 components={mergedComponents} 
