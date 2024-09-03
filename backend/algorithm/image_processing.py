@@ -42,11 +42,11 @@ def findSymbols(np_image_array) -> list :
     # Initialize an empty array with shape (img_height, 0) to store the columns
     symbol_array = np.empty((img_height, 0))
 
-    # Iterate through columns to find symbols
+    # Iterate through columns to find symbols.
     for col in range(img_width):
         column_data = np_image_array[:, col][:, np.newaxis]  # Convert to 2D array (column vector)
 
-        # Check if there are any non-zero values in the column
+        # Check if there are any non-zero values in the column, which are the "symbols".
         if np.any(column_data > 0):
             symbol_array = np.concatenate((symbol_array, column_data), axis=1)
 
@@ -67,7 +67,7 @@ def resizeImage(symbol_list):
     symbol_list: A numpy array list of the obtained symbols.
 
     Returns:
-    A numpy array list of all symbols fit into a 28x28 grid.
+    A numpy array list of all symbols (28x28) that are flattened.
     '''
     resized_symbols = []
 

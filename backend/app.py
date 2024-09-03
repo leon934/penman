@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
-from image_processing import resizeImage
+# from backend.algorithm.algorithm.image_processing import transformImage, findSymbols, resizeImage
 
 app = Flask(__name__)
 CORS(app)
@@ -18,7 +18,7 @@ def save_image():
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
-    resizeImage()
+    # resizeImage()
 
     return jsonify({'message': 'Snapshot saved successfully.'}), 200
 
