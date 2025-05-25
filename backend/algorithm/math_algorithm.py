@@ -34,7 +34,7 @@ class ExpressionParser:
 
     # TODO: Implement parenthesis and replace while loops that grab the number.
     def convertToPostfix(self):
-        # First number SHOULD be an integer.
+        # First value SHOULD be an integer. FIXME: Could also be a parenthesis.
         for operator in self.comparison_operator_list:
             if self.expression[0] == operator:
                 raise("First value should not be an operator.")
@@ -112,7 +112,7 @@ class ExpressionParser:
 
         return self.output_stack[0]
 
-eq1 = ExpressionParser(['1', '*', '3'])
+eq1 = ExpressionParser(['3', '+', '5'])
 eq1.combineIntegers()
 eq1.convertToPostfix()
 print(eq1.solvePostfix())

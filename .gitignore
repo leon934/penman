@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 venv/
 mnist_dataset
+
+__pycache__

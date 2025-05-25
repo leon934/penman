@@ -12,6 +12,8 @@ def transformImage(image_location):
     A scaled down numpy array of the image.
     '''
 
+    # FIXME: Function should eventually be reformed to transform images that have more than three symbols.
+
     # Load and preprocess the image.
     img = Image.open(image_location).convert('L')
     img_width, img_height = img.size

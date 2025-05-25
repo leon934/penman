@@ -1,4 +1,4 @@
-import neural_network as nn
+import dense_neural_network as dnn
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,7 +102,7 @@ def main():
     training_data = pd.read_csv(r"C:\Users\leonl\Documents\GitHub\penman\backend\mnist_dataset\train.csv")
 
     while i < max_iteration:
-        number_model = nn.NeuralNetwork(training_data, node_count)
+        number_model = dnn.NeuralNetwork(training_data, node_count)
 
         accuracy_trend = number_model.train(epochs, 0.1)
 
@@ -112,7 +112,7 @@ def main():
             number_model.saveParams('weight', 'bias')
             break    
         
-        i = i + 1
+        i += 1
 
     plt.ylim(0, 1)
     plt.xlabel('Epochs')
