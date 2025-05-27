@@ -2,7 +2,7 @@ import numpy as np
 from typing import List
 
 class Convolution():
-    def __init__(self, input_size: tuple[int], kernel_size: int, kernel_count: int, zeros=False):
+    def __init__(self, input_size: tuple[int], kernel_size: int, kernel_count: int, non_random=False):
         self.input_depth, self.input_height, self.input_width = input_size
         self.input_size = input_size
 
@@ -12,11 +12,14 @@ class Convolution():
         self.output_shape = (kernel_count, self.input_height - kernel_size + 1, self.input_width - kernel_size + 1)
         self.kernels_shape = (kernel_count, self.input_depth, self.kernel_size, self.kernel_size)
 
-        if zeros:
+        if non_random:
             self.kernels = np.zeros(self.kernels_shape)
+
+            for i in range(self.kernels.shape[0]):
+                self.kernels[i] = np.arange(0.1, 1, 0.1).round(1).reshape(self.kernel_size, self.kernel_size)
         else:
-            self.kernels = np.random.randn(*self.kernels_shape)
-            
+            self.kernels = np.random.normal(0, np.sqrt(2 / (kernel_size * kernel_size)), self.kernels_shape)
+
         self.bias = np.zeros(self.output_shape)
 
     def init_kernel(self, input_size: tuple[int], kernel_size: int, kernel_count: int) -> list:

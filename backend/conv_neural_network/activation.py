@@ -9,7 +9,7 @@ class Activation():
         self.input = input
         return self.activation(self.input)
     
-    def backward(self, output_gradient, alpha):
+    def backward(self, output_gradient, learning_rate):
         return np.multiply(output_gradient, self.activation_prime(self.input))
 
 class Sigmoid(Activation):
@@ -59,12 +59,11 @@ class Softmax():
     '''
 
     def forward(self, output_vector: np.array) -> np.array:
-        exps = np.exp(output_vector - np.max(output_vector, axis=1, keepdims=True))
-
-        self.output = exps / np.sum(exps, axis=1, keepdims=True)
+        self.output = np.exp(output_vector) / np.sum(np.exp(output_vector), axis=0, keepdims=True)
+        
         return self.output
 
-    def backward(self, grad, alpha):
-        inner = np.sum(grad * self.output, axis=1, keepdims=True)
+    def backward(self, grad, learning_rate):
+        inner = np.sum(grad * self.output, axis=0, keepdims=True)
         
         return self.output * (grad - inner)
