@@ -5,8 +5,8 @@ from reshape import Reshape
 from dense import Dense
 from pooling import Pooling
 from loss import cross_entropy, cross_entropy_prime
-import time
 
+import pickle
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
@@ -25,11 +25,11 @@ layers = [
     Reshape((filter, 13, 13), (filter * 13 * 13, 1)),
     Dense(filter * 13 * 13, 64),
     ReLU(),
-    Dense(64, final_output_size),
+    Dense(64, 10),
     Softmax(),
 ]
 
-def preprocess_data(batch_size: int):
+def preprocess_data():
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
     x_train = x_train.reshape(len(x_train), 1, 28, 28)
@@ -38,52 +38,39 @@ def preprocess_data(batch_size: int):
     y_train = keras.utils.to_categorical(y_train)
     y_train = y_train.reshape(len(y_train), 10, 1)
 
-    batch_x = [x_train[i : i + batch_size] for i in range(0, x_train.shape[0], batch_size)]
-    batch_y = [y_train[i : i + batch_size] for i in range(0, y_train.shape[0], batch_size)]
-
     x_test = x_test.reshape(len(x_test), 1, 28, 28)
     x_test = x_test.astype("float32") / 255
 
-    return batch_x, batch_y, x_test, y_test
+    return x_train, y_train, x_test, y_test
 
 
 def main():
     epochs = 5
-    learning_rate = 0.1
-    batch_size = 100
+    learning_rate = 0.05
 
-    batch_x, batch_y, x_test, y_test = preprocess_data(batch_size)
+    x_train, y_train, x_test, y_test = preprocess_data()
 
-    errors = []
 
     for e in tqdm(range(epochs)):
         loss = 0
 
-        for curr_batch_x, curr_batch_y in tzip(batch_x, batch_y):
-            batch_output = []
+        for x, y in tzip(x_train, y_train):
+            output = x
 
-            for x, y in zip(curr_batch_x, curr_batch_y):
-                output = x
+            for layer in layers:
+                output = layer.forward(output)
 
-                for layer in layers:
-                    output = layer.forward(output)
+            loss += cross_entropy(y, output)
 
-                batch_output.append(output)
+            grad = cross_entropy_prime(y, output)
 
-            batch_output = np.stack(batch_output)
-
-            loss += np.sum([cross_entropy(y, y_hat) for y, y_hat in zip(curr_batch_y, batch_output)])
-
-            batch_grad = np.stack([cross_entropy_prime(y, y_hat) for y, y_hat in zip(curr_batch_y, batch_output)])
-    
-            grad = batch_grad.mean(axis=0)
-
-            for layer in reversed(layers):
+            # The cross_entropy prime function simplifies out the softmax portion when using cross entropy, so there is no need to include it in the iteration.
+            for layer_idx in range(len(layers) - 2, -1, -1):
+                layer = layers[layer_idx]
                 grad = layer.backward(grad, learning_rate)
 
-        curr_error = loss / len(batch_x) * batch_size
+        curr_error = loss / len(x_train)
         
-        errors.append(curr_error)
         print(f"\n Epoch {e}'s error = {curr_error}")
 
         accuracy = 0
@@ -97,8 +84,22 @@ def main():
             if np.argmax(output) == y:
                 accuracy += 1
 
-        print(f"Epoch {e} - accuracy of CNN: {accuracy / len(y_test)}\n")
+        accuracy /= len(y_test)
 
+        print(f"Epoch {e} - accuracy of CNN: {accuracy}\n")
+
+        with open("./best_accuracy", "r+") as file:
+            best = file.read().strip()
+
+            if float(best) < accuracy:
+                print(f"Better weights and biases found with accuracy: {accuracy:.4f}. Saving weights and biases.")
+
+                with open("./weight_bias/model.pkl", "wb") as pkl_file:
+                    pickle.dump(layers, pkl_file)
+
+                file.seek(0)
+                file.write(f"{accuracy:.6f}")
+                file.truncate()
 
 if __name__ == "__main__":
     main()

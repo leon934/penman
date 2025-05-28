@@ -12,6 +12,12 @@ class Activation():
     def backward(self, output_gradient, learning_rate):
         return np.multiply(output_gradient, self.activation_prime(self.input))
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_prime(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
 class Sigmoid(Activation):
     '''
     Activation function class that fits all values in between 1 and -1.
@@ -22,13 +28,13 @@ class Sigmoid(Activation):
         1. x (float): returns value after being passed into the sigmoid function
     '''
     def __init__(self):
-        def sigmoid(x):
-            return 1 / (1 + np.exp(-x))
-
-        def sigmoid_prime(x):
-            return sigmoid(x) * (1 - sigmoid(x))
-
         super().__init__(sigmoid, sigmoid_prime)
+
+def relu(x: np.array) -> np.array:
+    return np.maximum(0, x)
+
+def relu_prime(x):
+    return (x > 0).astype(x.dtype)
 
 class ReLU(Activation):
     '''
@@ -40,12 +46,6 @@ class ReLU(Activation):
         2. x (float): value after being passed into relu function.
     '''
     def __init__(self):
-        def relu(x: np.array) -> np.array:
-            return np.maximum(0, x)
-        
-        def relu_prime(x):
-            return (x > 0).astype(x.dtype)
-
         super().__init__(relu, relu_prime)
 
 class Softmax():
@@ -59,7 +59,8 @@ class Softmax():
     '''
 
     def forward(self, output_vector: np.array) -> np.array:
-        self.output = np.exp(output_vector) / np.sum(np.exp(output_vector), axis=0, keepdims=True)
+        shift = output_vector - np.max(output_vector, axis=0, keepdims=True)
+        self.output = np.exp(shift) / np.sum(np.exp(shift), axis=0, keepdims=True)
         
         return self.output
 

@@ -20,3 +20,6 @@ class Dense():
         self.bias -= learning_rate * output_grad
 
         return input_grad
+    
+    def save(self):
+        pass    
