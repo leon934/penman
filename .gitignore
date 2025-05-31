@@ -22,7 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-venv/
+.venv/
 mnist_dataset
+.vscode/
 
-__pycache__
+__pycache__/

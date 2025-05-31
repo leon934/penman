@@ -29,6 +29,9 @@ layers = [
     Softmax(),
 ]
 
+# with open("./model/model.pkl", "rb") as file:
+#     layers = pickle.load(file)
+
 def preprocess_data():
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
@@ -49,7 +52,6 @@ def main():
     learning_rate = 0.05
 
     x_train, y_train, x_test, y_test = preprocess_data()
-
 
     for e in tqdm(range(epochs)):
         loss = 0
@@ -94,7 +96,7 @@ def main():
             if float(best) < accuracy:
                 print(f"Better weights and biases found with accuracy: {accuracy:.4f}. Saving weights and biases.")
 
-                with open("./weight_bias/model.pkl", "wb") as pkl_file:
+                with open("./model/model.pkl", "wb") as pkl_file:
                     pickle.dump(layers, pkl_file)
 
                 file.seek(0)

@@ -18,9 +18,9 @@ class Convolution():
             for i in range(self.kernels.shape[0]):
                 self.kernels[i] = np.arange(0.1, 1, 0.1).round(1).reshape(self.kernel_size, self.kernel_size)
         else:
-            self.kernels = np.random.normal(0, np.sqrt(2 / (kernel_size * kernel_size)), self.kernels_shape)
+            self.kernels = np.random.normal(0, np.sqrt(2 / (kernel_size * kernel_size)), self.kernels_shape).astype(np.float32)
 
-        self.bias = np.zeros(self.output_shape)
+        self.bias = np.zeros(self.output_shape, dtype=np.float32)
 
     def init_kernel(self, input_size: tuple[int], kernel_size: int, kernel_count: int) -> list:
         '''

@@ -3,10 +3,9 @@ from typing import List
 
 class Dense():
     def __init__(self, input_size: int, output_size: int):
-        self.weights = np.random.normal(0, np.sqrt(2 / input_size), (output_size, input_size))
-
-        self.bias = np.random.rand(output_size, 1)
-        self.bias.fill(0.1)
+        self.weights = np.random.normal(0, np.sqrt(2 / input_size), (output_size, input_size)).astype(np.float32)
+        
+        self.bias = np.full((output_size, 1), 0.1, dtype=np.float32)
 
     def forward(self, input: np.array):
         self.input = input

@@ -6,47 +6,49 @@ from dense import Dense
 from pooling import Pooling
 from loss import cross_entropy, cross_entropy_prime
 
+import matplotlib.pyplot as plt
+
+import onnxruntime as ort
+
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import keras
 import pickle
+import sys
 
-# def preprocess_data():
-#     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+np.set_printoptions(threshold=sys.maxsize)
 
-#     x_train = x_train.reshape(len(x_train), 1, 28, 28)
-#     x_train = x_train.astype("float32") / 255
+def preprocess_data():
+    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
-#     y_train = keras.utils.to_categorical(y_train)
-#     y_train = y_train.reshape(len(y_train), 10, 1)
+    x_train = x_train.reshape(len(x_train), 1, 28, 28)
+    x_train = x_train.astype("float32") / 255
 
-#     x_test = x_test.reshape(len(x_test), 1, 28, 28)
-#     x_test = x_test.astype("float32") / 255
+    y_train = keras.utils.to_categorical(y_train)
+    y_train = y_train.reshape(len(y_train), 10, 1)
 
-#     return x_train[0], y_train, x_test, y_test
+    x_test = x_test.reshape(len(x_test), 1, 28, 28)
+    x_test = x_test.astype("float32") / 255
 
-# x_train, y_train, x_test, y_test = preprocess_data()
+    return x_train[:1], y_train, x_test, y_test
 
-# output = x_train
+x_train, y_train, x_test, y_test = preprocess_data()
 
-# with open("./weight_bias/model.pkl", "rb") as file:
-#     layers2 = pickle.load(file)
+sess = ort.InferenceSession("./model/penman_cnn.onnx")
+outputs = sess.run(None, {"X": x_train.astype(np.float32)})
 
-# output2 = x_train
+print(np.argmax(outputs[0]))
 
-# for layer in layers2:
-#     output2 = layer.forward(output2)
+with open("./model/model.pkl", "rb") as file:
+    layers = pickle.load(file)
 
-# print(np.argmax(output2))
+output = x_train[0]
 
-output_vector = np.random.rand(10, 1)
+for layer in layers:
+    output = layer.forward(output)
 
-layer = Softmax()
+print(np.argmax(output))
 
-layer.forward(output_vector)
-
-output = np.exp(output_vector) / np.sum(np.exp(output_vector), axis=0, keepdims=True)
-print(output)
-
-assert layer.forward(output_vector) == output, "methods are different"
+# plt.imshow(x_train[0, 0, :, :], cmap="gray")
+# plt.show()

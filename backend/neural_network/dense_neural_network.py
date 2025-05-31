@@ -178,6 +178,3 @@ class NeuralNetwork:
             np.save(f"./backend/neural_network/wb/{weight_file_prefix}_{i}.npy", weight)
         for i, bias in enumerate(self.bias_list):
             np.save(f"./backend/neural_network/wb/{bias_file_prefix}_{i}.npy", bias)
-            
-# # Deliverable: Number/operator given image.
-
