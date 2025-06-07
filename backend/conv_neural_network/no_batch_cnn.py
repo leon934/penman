@@ -90,7 +90,7 @@ def main():
 
         print(f"Epoch {e} - accuracy of CNN: {accuracy}\n")
 
-        with open("./best_accuracy", "r+") as file:
+        with open("./model/best_accuracy", "r+") as file:
             best = file.read().strip()
 
             if float(best) < accuracy:
