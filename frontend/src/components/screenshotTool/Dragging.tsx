@@ -77,9 +77,12 @@ export class ScreenshotDragging extends StateNode {
 
                 const response = await fetch(apiURL, request);
 
-                if(!response.ok) { throw new Error(`Server responded with status: ${response.status}`) };
+                if(!response.ok) { throw new Error(`Server responded with status when attempting to : ${response.status}`) };
 
-                console.log("Server responded successfully.");
+                response.json().then((data) => {
+                    console.log(data.predicted_value);
+                    console.log(data.confidence);
+                })
             } catch(e) {
                 console.log("Error occured", e)
                 this.editor.setCurrentTool('select')

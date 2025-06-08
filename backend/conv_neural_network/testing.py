@@ -38,6 +38,8 @@ x_train, y_train, x_test, y_test = preprocess_data()
 sess = ort.InferenceSession("./model/penman_cnn.onnx")
 outputs = sess.run(None, {"X": x_train.astype(np.float32)})
 
+print(x_train.shape)
+
 print(np.argmax(outputs[0]))
 
 with open("./model/model.pkl", "rb") as file:

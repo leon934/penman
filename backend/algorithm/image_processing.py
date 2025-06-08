@@ -1,7 +1,7 @@
 from PIL import Image
 import numpy as np
 
-def transformImage(image_location):
+def transform_image(img: Image):
     '''
     Transforms a given image of an unsolved equation (eg. an image of 2 + 3) and resizes it down for further processing.
 
@@ -15,7 +15,9 @@ def transformImage(image_location):
     # FIXME: Function should eventually be reformed to transform images that have more than three symbols.
 
     # Load and preprocess the image.
-    img = Image.open(image_location).convert('L')
+    # img = Image.open(image_location).convert('L')
+    img = img.convert('L')
+
     img_width, img_height = img.size
     img = img.resize((int(img_width / img_height * 28), 28)) if img_width > img_height else img.resize((28, int(img_height / img_width * 28)))
 

@@ -88,15 +88,11 @@ function ScreenshotBox() {
 
     return (
         <div 
+            className="absolute top-0 left-0 border-2 border-dashed z-0"
             style={{
-				position: 'absolute',
-				top: 0,
-				left: 0,
 				transform: `translate(${screenshotBrush.x}px, ${screenshotBrush.y}px)`,
 				width: screenshotBrush.w,
 				height: screenshotBrush.h,
-				border: '1px solid var(--color-text-0)',
-				zIndex: 999,
             }}
         />
     )
