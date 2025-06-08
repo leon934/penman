@@ -42,6 +42,7 @@ def save_image():
         ContentType='image/png'
     )
 
+    # Convert to PIL image in order to compress it down to 28x28.
     image = Image.open(io.BytesIO(base64.decodebytes(bytes(image_data, "utf-8"))))
 
     # FIXME: This ONLY works with a singular digit. Eventually, this should be adapted to work for more complex expressions.
