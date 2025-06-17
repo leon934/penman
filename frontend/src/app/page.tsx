@@ -59,7 +59,7 @@ function CustomToolbar() {
 
 const customAssetUrls: TLUiAssetUrlOverrides = {
     icons: {
-        'tool-screenshot': '../assets/penman_logo.svg'
+        'tool-screenshot': '/penman_logo.svg'
     }
 }
 
@@ -106,7 +106,7 @@ const customComponents: TLComponents = {
 export default function HomePage() {
     return (
         <div style={{ position: 'fixed', inset: 0}}>
-            {/* TODO: Potentially replace persistenceKey argument with custom defined project name. */}
+            {/* TODO: Potentially replace persistenceKey argument with custom defined project name? */}
             <Tldraw
                 persistenceKey='placeholder_user'
                 tools={customTools}

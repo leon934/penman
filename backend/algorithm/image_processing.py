@@ -18,11 +18,17 @@ def transform_image(img: Image):
     # img = Image.open(image_location).convert('L')
     img = img.convert('L')
 
-    img_width, img_height = img.size
-    img = img.resize((int(img_width / img_height * 28), 28)) if img_width > img_height else img.resize((28, int(img_height / img_width * 28)))
+    # img_width, img_height = img.size
 
-    # Done to allow the neural network to eventually process the individual symbols.
-    img_array = 255 - np.array(img)
+    img = img.resize((28, 28), Image.Resampling.LANCZOS)
+
+    # if img_width > img_height:
+    #     img = img.resize((int(img_width / img_height * 28), 28))
+    # else:
+    #     img = img.resize((28, int(img_height / img_width * 28)))
+
+    # Done to allow the neural network to eventually process the individual symbols by inverting the colors.
+    img_array = 255 - np.array(img)     
     img_array[img_array < 10] = 0
 
     return img_array

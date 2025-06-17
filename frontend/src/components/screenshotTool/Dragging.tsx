@@ -53,14 +53,15 @@ export class ScreenshotDragging extends StateNode {
             return box.includes(pageBounds);
         })
 
+        console.log(shapes)
+
         if(shapes.length) {
             try {
+                // Converts image to data url to be sent to the backend.
                 const screenshot = await editor.toImage(shapes);
                 const dataURL = await blobToDataURL(screenshot.blob);
                 const payload = {
-                    imageData: dataURL,
-                    // TODO: Replace this with whatever in the future as an identifier.
-                    filename: "placeholder_screenshot"
+                    imageData: dataURL
                 }
 
                 const apiURL = 'http://127.0.0.1:5000/image'
@@ -73,15 +74,54 @@ export class ScreenshotDragging extends StateNode {
                     body: JSON.stringify(payload)
                 }
 
+                console.log(0)
+
                 this.editor.setCurrentTool('select')
 
                 const response = await fetch(apiURL, request);
 
                 if(!response.ok) { throw new Error(`Server responded with status when attempting to : ${response.status}`) };
 
+                // Handle response's json.
                 response.json().then((data) => {
-                    console.log(data.predicted_value);
-                    console.log(data.confidence);
+                    // console.log(data.predicted_value);
+                    // console.log(data.confidence);
+
+                    const tldraw_number = data.tldraw_number
+
+                    let furthestX = 0
+                    let furthestShape = undefined;
+
+                    for(const shape of shapes) {
+                        console.log(shape.x)
+
+                        if(shape?.x === undefined) continue;
+                        console.log(1)
+
+                        furthestX = Math.max(furthestX, shape.x);
+                        furthestShape = shape;
+                    }
+
+                    if(!furthestShape) {
+                        console.log("Unable to find furthest shape. Returning.")
+                        return
+                    }
+
+                    // const coordinates = tldraw_number.props.segments[0].points
+
+                    // let maxX = 0
+                    // for(const coordinate of coordinates) {
+                    //     maxX = Math.max(maxX, coordinate.x)
+                    // }
+
+                    this.editor.createShape({
+                        type: furthestShape.type,
+                        x: furthestShape.x + 100,
+                        y: furthestShape.y,
+                        props: tldraw_number.props
+                    })
+
+                    console.log("Result drawn successfully.")
                 })
             } catch(e) {
                 console.log("Error occured", e)

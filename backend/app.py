@@ -10,6 +10,7 @@ import os
 import base64
 import io
 from datetime import datetime
+import json
 
 from algorithm.image_processing import transform_image
 
@@ -26,6 +27,9 @@ session = boto3.Session(
 )
 
 s3 = session.resource('s3')
+
+# Loads the model once per instance of the server.
+model = s3.Object("penman-lln", "model/penman_cnn.onnx").get()['Body'].read()
 
 @app.route('/image', methods=['POST'])
 def save_image():
@@ -50,11 +54,22 @@ def save_image():
     expression = transform_image(image).reshape(1, 1, 28, 28)
 
     # Creates a session with the model and feeds the expression through the model.
-    model = s3.Object("penman-lln", "model/penman_cnn.onnx").get()['Body'].read()
     session = ort.InferenceSession(model)
     output = session.run(None, {"X": expression.astype(np.float32)})
 
-    return jsonify({'predicted_value': int(np.argmax(output[0])), 'confidence': float(np.max(output[0]))}), 200
+    predicted_value = int(np.argmax(output[0]))
+    confidence = float(np.max(output[0]))
+
+    content = s3.Object("penman-lln", f"data/evaluation_digits/{predicted_value}.json").get()['Body'].read().decode("utf-8")
+    tldraw_num = json.loads(content)
+
+    return jsonify(
+        {
+            'predicted_value': predicted_value,
+            'confidence': confidence,
+            'tldraw_number': tldraw_num
+        }
+    ), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
