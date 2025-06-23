@@ -60,6 +60,7 @@ def save_image():
     predicted_value = int(np.argmax(output[0]))
     confidence = float(np.max(output[0]))
 
+    # Obtains the tldraw JSON representation of the number from the S3 bucket.
     content = s3.Object("penman-lln", f"data/evaluation_digits/{predicted_value}.json").get()['Body'].read().decode("utf-8")
     tldraw_num = json.loads(content)
 

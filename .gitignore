@@ -76,3 +76,5 @@ yarn-error.log*
 
 /frontend_v1
 .next
+
+data/
