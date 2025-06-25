@@ -20,7 +20,7 @@ IR_VERS = 10
 OPT_VERS = 15
 
 def main():
-    num_output = 10
+    num_output = 17
 
     with open("./model/model.pkl", "rb") as file:
         layers = pickle.load(file)

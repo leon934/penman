@@ -12,7 +12,7 @@ import io
 from datetime import datetime
 import json
 
-from algorithm.image_processing import transform_image
+from algorithm.image_processing import resize_image, transform_single_digit
 
 load_dotenv()
 
@@ -30,6 +30,20 @@ s3 = session.resource('s3')
 
 # Loads the model once per instance of the server.
 model = s3.Object("penman-lln", "model/penman_cnn.onnx").get()['Body'].read()
+
+label_decoding = {
+    10: '(',
+    11: ')',
+    12: '+',
+    13: '-',
+    14: '=',
+    15: 'fwd_slash',
+    16: 'times'
+}
+
+def process_image(image: Image):
+    # Resizes and inverts image so the larger dimension is 28 and is the proper format for the CNN.
+    image = resize_image(image)
 
 @app.route('/image', methods=['POST'])
 def save_image():
@@ -49,26 +63,36 @@ def save_image():
     # Convert to PIL image in order to compress it down to 28x28.
     image = Image.open(io.BytesIO(base64.decodebytes(bytes(image_data, "utf-8"))))
 
+    print(image_data)
+
     # FIXME: This ONLY works with a singular digit. Eventually, this should be adapted to work for more complex expressions.
     # Matrix shape required to feed into model.
-    expression = transform_image(image).reshape(1, 1, 28, 28)
+    expression = transform_single_digit(image).reshape(1, 1, 28, 28)
 
     # Creates a session with the model and feeds the expression through the model.
     session = ort.InferenceSession(model)
-    output = session.run(None, {"X": expression.astype(np.float32)})
+    output = session.run(None, {"X": expression.astype(np.float32)})[0]
 
-    predicted_value = int(np.argmax(output[0]))
-    confidence = float(np.max(output[0]))
+    predicted_values = np.argmax(output, axis=1).tolist()
+    confidence = np.max(output, axis=1).tolist()
+
+    # Converts to string representation.
+    predicted_values = [label_decoding[val] if val >= 10 else val for val in predicted_values]
 
     # Obtains the tldraw JSON representation of the number from the S3 bucket.
-    content = s3.Object("penman-lln", f"data/evaluation_digits/{predicted_value}.json").get()['Body'].read().decode("utf-8")
-    tldraw_num = json.loads(content)
+    tldraw_nums = []
+    
+    for val in predicted_values:
+        print(val)
+
+        content = s3.Object("penman-lln", f"data/evaluation_digits/{val}.json").get()['Body'].read().decode("utf-8")
+        tldraw_nums.append(json.loads(content))
 
     return jsonify(
         {
-            'predicted_value': predicted_value,
+            'predicted_values': predicted_values,
             'confidence': confidence,
-            'tldraw_number': tldraw_num
+            'tldraw_numbers': tldraw_nums
         }
     ), 200
 

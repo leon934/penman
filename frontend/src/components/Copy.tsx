@@ -23,22 +23,20 @@ export const Copy = () => {
             }
 
             editor.createShape(newShape);
-
-            console.log(selectedShape);
             
-            // const json = JSON.stringify(newShape, null, 4);
-            // const blob = new Blob([json], { type: "application/json" })
-            // const url = URL.createObjectURL(blob)
+            const json = JSON.stringify(newShape, null, 4);
+            const blob = new Blob([json], { type: "application/json" })
+            const url = URL.createObjectURL(blob)
 
-            // const a = document.createElement('a')
-            // a.href = url
+            const a = document.createElement('a')
+            a.href = url
 
-            // const number = 1
+            const number = 1
 
-            // a.download = `${number}.json`
-            // a.click()
+            a.download = `${number}.json`
+            a.click()
 
-            // URL.revokeObjectURL(url)
+            URL.revokeObjectURL(url)
         }
 
         window.addEventListener('copy', onCopy);

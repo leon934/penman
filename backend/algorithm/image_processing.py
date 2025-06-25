@@ -1,7 +1,30 @@
 from PIL import Image
 import numpy as np
+import cv2
 
-def transform_image(img: Image):
+def transform_single_digit(img: Image):
+    '''
+    Transforms a given image of an unsolved equation (eg. an image of 2 + 3) and resizes it down for further processing.
+
+    Parameters:
+    image_location: The location of the image to be processed.
+
+    Returns:
+    A scaled down numpy array of the image.
+    '''
+
+    # Load and preprocess the image.
+    img = img.convert('L')
+
+    img = img.resize((28, 28), Image.Resampling.LANCZOS)
+
+    # Done to allow the neural network to eventually process the individual symbols by inverting the colors.
+    img_array = 255 - np.array(img)     
+    img_array[img_array < 10] = 0
+
+    return img_array
+
+def resize_image(img: Image):
     '''
     Transforms a given image of an unsolved equation (eg. an image of 2 + 3) and resizes it down for further processing.
 
@@ -15,23 +38,26 @@ def transform_image(img: Image):
     # FIXME: Function should eventually be reformed to transform images that have more than three symbols.
 
     # Load and preprocess the image.
-    # img = Image.open(image_location).convert('L')
     img = img.convert('L')
 
-    # img_width, img_height = img.size
+    img_width, img_height = img.size
 
-    img = img.resize((28, 28), Image.Resampling.LANCZOS)
+    if img_width > img_height:
+        img = img.resize((int(img_width / img_height * 28), 28))
+    else:
+        img = img.resize((28, int(img_height / img_width * 28)))
 
-    # if img_width > img_height:
-    #     img = img.resize((int(img_width / img_height * 28), 28))
-    # else:
-    #     img = img.resize((28, int(img_height / img_width * 28)))
-
-    # Done to allow the neural network to eventually process the individual symbols by inverting the colors.
+    # Inverts colors and filters out any subtle dark colors.
     img_array = 255 - np.array(img)     
     img_array[img_array < 10] = 0
 
     return img_array
+
+def find_contours(image: Image):
+    # Finds the contours by obtaining only the outermost shapes.
+    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    boxes = sorted([cv2.boundingRect(c) for c in contours], key=lambda b: b[0])
 
 # FIXME: Currently only works if img_width < img_height.
 def findSymbols(np_image_array) -> list :

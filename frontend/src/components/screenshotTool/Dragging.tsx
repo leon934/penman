@@ -1,4 +1,4 @@
-import { StateNode, Box, atom } from "tldraw";
+import { StateNode, Box, atom, type TLShape } from "tldraw";
 
 function blobToDataURL(blob: Blob) {
     return new Promise((resolve, reject) => {
@@ -53,8 +53,6 @@ export class ScreenshotDragging extends StateNode {
             return box.includes(pageBounds);
         })
 
-        console.log(shapes)
-
         if(shapes.length) {
             try {
                 // Converts image to data url to be sent to the backend.
@@ -74,8 +72,6 @@ export class ScreenshotDragging extends StateNode {
                     body: JSON.stringify(payload)
                 }
 
-                console.log(0)
-
                 this.editor.setCurrentTool('select')
 
                 const response = await fetch(apiURL, request);
@@ -84,19 +80,13 @@ export class ScreenshotDragging extends StateNode {
 
                 // Handle response's json.
                 response.json().then((data) => {
-                    // console.log(data.predicted_value);
-                    // console.log(data.confidence);
-
-                    const tldraw_number = data.tldraw_number
+                    const tldrawNumbers = data.tldraw_numbers
 
                     let furthestX = 0
                     let furthestShape = undefined;
 
                     for(const shape of shapes) {
-                        console.log(shape.x)
-
                         if(shape?.x === undefined) continue;
-                        console.log(1)
 
                         furthestX = Math.max(furthestX, shape.x);
                         furthestShape = shape;
@@ -107,20 +97,36 @@ export class ScreenshotDragging extends StateNode {
                         return
                     }
 
-                    // const coordinates = tldraw_number.props.segments[0].points
+                    // console.log(typeof tldrawNumbers)
 
-                    // let maxX = 0
-                    // for(const coordinate of coordinates) {
-                    //     maxX = Math.max(maxX, coordinate.x)
-                    // }
+                    console.log(data.predicted_values)
+                    // console.log(data.tldraw_numbers)
 
-                    this.editor.createShape({
-                        type: furthestShape.type,
-                        x: furthestShape.x + 100,
-                        y: furthestShape.y,
-                        props: tldraw_number.props
+                    const offset = 100
+
+                    console.log(tldrawNumbers.entries())
+
+                    // Creates a new shape and offsets them.
+                    const newShapes = Object.entries(tldrawNumbers).map(([i, val]) => {
+                        const shape = Array.isArray(val) ? val[0] : val;
+
+                        if(!val || typeof val !== 'object' || !shape.props || !shape.type) {
+                            console.log(`Invalid shape at index ${i}`, val)
+                            console.log(shape)
+                        }
+                        
+                        return {
+                            props: shape.props,
+                            type: shape.type,
+                            x: furthestShape.x + Number(i) * offset + offset,
+                            y: furthestShape.y
+                        };
                     })
 
+                    console.log(newShapes)
+
+                    this.editor.createShapes(newShapes)
+                    
                     console.log("Result drawn successfully.")
                 })
             } catch(e) {

@@ -17,6 +17,7 @@ import {
     useValue
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { Copy } from '~/components/Copy';
 
 const customTools = [ScreenshotTool]
 
@@ -113,7 +114,9 @@ export default function HomePage() {
                 overrides={customUiOverrides}
                 assetUrls={customAssetUrls}
                 components={customComponents}
-            />
+            >
+                <Copy />
+            </Tldraw>
         </div>
     );
 }

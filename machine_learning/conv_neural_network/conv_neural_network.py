@@ -1,17 +1,15 @@
 import numpy as np
 from convolution import Convolution
-from activation import Sigmoid, ReLU, Softmax
+from activation import ReLU, Softmax
 from reshape import Reshape
 from dense import Dense
 from pooling import Pooling
 from loss import cross_entropy, cross_entropy_prime
-import time
 
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import keras
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from tqdm.contrib import tzip
 
