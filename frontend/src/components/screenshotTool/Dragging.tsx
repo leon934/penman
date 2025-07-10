@@ -1,4 +1,5 @@
-import { StateNode, Box, atom, type TLShape } from "tldraw";
+import { StateNode, Box, atom, type TLDrawShape } from "tldraw";
+import { mathTokens } from "../TLDrawMathTokens";
 
 function blobToDataURL(blob: Blob) {
     return new Promise((resolve, reject) => {
@@ -17,6 +18,8 @@ function blobToDataURL(blob: Blob) {
         reader.readAsDataURL(blob);
     })
 }
+
+
 
 export class ScreenshotDragging extends StateNode {
     static override id = "dragging";
@@ -62,7 +65,7 @@ export class ScreenshotDragging extends StateNode {
                     imageData: dataURL
                 }
 
-                const apiURL = 'http://127.0.0.1:5000/image'
+                const apiURL = 'http://127.0.0.1:5000/api/predict'
                 const request = {
                     method: "POST",
                     headers: {
@@ -78,16 +81,18 @@ export class ScreenshotDragging extends StateNode {
 
                 if(!response.ok) { throw new Error(`Server responded with status when attempting to : ${response.status}`) };
 
-                // Handle response's json.
                 response.json().then((data) => {
-                    const tldrawNumbers = data.tldraw_numbers
+                    let tldrawNumbers: TLDrawShape[] = []
 
+                    for(const token of data.predicted_values) {
+                        const shape = mathTokens[token as any]
+                        if(shape) tldrawNumbers.push(shape)
+                    }
+                    
                     let furthestX = 0
-                    let furthestShape = undefined;
+                    let furthestShape = undefined
 
                     for(const shape of shapes) {
-                        if(shape?.x === undefined) continue;
-
                         furthestX = Math.max(furthestX, shape.x);
                         furthestShape = shape;
                     }
@@ -97,14 +102,7 @@ export class ScreenshotDragging extends StateNode {
                         return
                     }
 
-                    // console.log(typeof tldrawNumbers)
-
-                    console.log(data.predicted_values)
-                    // console.log(data.tldraw_numbers)
-
                     const offset = 100
-
-                    console.log(tldrawNumbers.entries())
 
                     // Creates a new shape and offsets them.
                     const newShapes = Object.entries(tldrawNumbers).map(([i, val]) => {
@@ -122,8 +120,6 @@ export class ScreenshotDragging extends StateNode {
                             y: furthestShape.y
                         };
                     })
-
-                    console.log(newShapes)
 
                     this.editor.createShapes(newShapes)
                     

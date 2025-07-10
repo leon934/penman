@@ -60,7 +60,7 @@ def find_contours(image: Image):
     boxes = sorted([cv2.boundingRect(c) for c in contours], key=lambda b: b[0])
 
 # FIXME: Currently only works if img_width < img_height.
-def findSymbols(np_image_array) -> list :
+def find_symbols(np_image_array) -> list :
     '''
     Scans through the numpy array to locate any symbols.
 
