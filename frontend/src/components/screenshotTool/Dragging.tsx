@@ -84,7 +84,9 @@ export class ScreenshotDragging extends StateNode {
                 response.json().then((data) => {
                     let tldrawNumbers: TLDrawShape[] = []
 
-                    for(const token of data.predicted_values) {
+                    console.log(data.determined_value, data.predicted_values)
+
+                    for(const token of data.determined_value) {
                         const shape = mathTokens[token as any]
                         if(shape) tldrawNumbers.push(shape)
                     }
@@ -101,7 +103,8 @@ export class ScreenshotDragging extends StateNode {
                         console.log("Unable to find furthest shape. Returning.")
                         return
                     }
-
+                    
+                    // TODO: The offset is how much to shift the number by. Depending on the usecase, the offset would lead to overlapping or spread-apart math tokens.
                     const offset = 100
 
                     // Creates a new shape and offsets them.
@@ -122,7 +125,6 @@ export class ScreenshotDragging extends StateNode {
                     })
 
                     this.editor.createShapes(newShapes)
-                    
                     console.log("Result drawn successfully.")
                 })
             } catch(e) {

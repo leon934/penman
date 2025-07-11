@@ -5,17 +5,16 @@ import boto3
 import onnxruntime as ort
 import numpy as np
 from dotenv import load_dotenv
-import aioboto3
+from pymep.realParser import parse
 
 import os
 import base64
 import io
 from datetime import datetime
-import json
 import time
 import asyncio
 
-from algorithm.image_processing import resize_image, transform_single_digit
+from utils.image_processing import transform_image, process_image
 
 load_dotenv()
 
@@ -33,7 +32,7 @@ bucket = "penman-lln"
 s3 = session.resource('s3')
 
 # Loads the model once per instance of the server.
-model = s3.Object("penman-lln", "model/penman_cnn.onnx").get()['Body'].read()
+model = s3.Object(bucket, "model/penman_cnn.onnx").get()['Body'].read()
 
 label_decoding = {
     10: '(',
@@ -44,11 +43,6 @@ label_decoding = {
     15: 'fwd_slash',
     16: 'times'
 }
-
-# TODO: Create a function to split up the image into its individual 
-def process_image(image: Image):
-    # Resizes and inverts image so the larger dimension is 28 and is the proper format for the CNN.
-    image = resize_image(image)
 
 def upload(buffer, key):
     s3.Object(bucket, key).put(
@@ -79,28 +73,38 @@ async def predict():
 
     # print(image_data)
 
-    # FIXME: This ONLY works with a singular digit. Eventually, this should be adapted to work for more complex expressions.
     # Matrix shape required to feed into model.
-    expression = transform_single_digit(image).reshape(1, 1, 28, 28)
+    tokens = process_image(image)
 
     # Creates a session with the model and feeds the expression through the model.
     session = ort.InferenceSession(model)
-    output = session.run(None, {"X": expression.astype(np.float32)})[0]
+    output = session.run(None, {"X": tokens.astype(np.float32)})[0]
 
     predicted_values = np.argmax(output, axis=1).tolist()
     confidence = np.max(output, axis=1).tolist()
 
     # Converts to string representation.
-    predicted_values = [label_decoding[val] if val >= 10 else val for val in predicted_values]
+    predicted_values = [label_decoding[val] if val >= 10 else str(val) for val in predicted_values]
+
+    expression = "".join(predicted_values)
+
+    try:
+        # TODO: Maybe consider implementing floats in the future.
+        value = str(int(parse(expression)))
+    except Exception as e:
+        return jsonify(
+            {
+                "error": f"Failed to parse expression. Got {expression}, expected actual expression.\n{e}"
+            }
+        ), 400
 
     return jsonify(
         {
             'predicted_values': predicted_values,
             'confidence': confidence,
+            'determined_value': value
         }
     ), 200
-
-
 
 @app.route('/api/save_image', methods=["POST"])
 async def save_image():
