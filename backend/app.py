@@ -61,7 +61,7 @@ async def predict():
     # Convert to PIL image in order to compress it down to 28x28.
     image = Image.open(io.BytesIO(base64.decodebytes(bytes(image_data, "utf-8"))))
 
-    # Places equation in equation S3 bucket for further usage (?)
+    # Places equation in equation S3 bucket for continuous finetuning.
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     buffer.seek(0)
@@ -73,7 +73,7 @@ async def predict():
 
     # print(image_data)
 
-    # Matrix shape required to feed into model.
+    # Performs image transformations by cutting up, stretching, and morphing data.
     tokens = process_image(image)
 
     # Creates a session with the model and feeds the expression through the model.

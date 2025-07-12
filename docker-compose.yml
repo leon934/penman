@@ -1,0 +1,17 @@
+services:
+  backend:
+    build: ./backend
+    container_name: penman-backend-server
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+  frontend:
+    build: ./frontend
+    container_name: penman-nextjs-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.docker
+    depends_on:
+      - backend
