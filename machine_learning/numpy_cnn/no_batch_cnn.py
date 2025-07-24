@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from tqdm.contrib import tzip
 
-FINAL_OUTPUT_SIZE = 17
+FINAL_OUTPUT_SIZE = 10
 filter = 16
 
 layers = [
@@ -58,7 +58,7 @@ def import_operator_data(x_train, y_train, x_test, y_test):
 def preprocess_data():
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
-    x_train, y_train, x_test, y_test = import_operator_data(x_train, y_train, x_test, y_test)
+    # x_train, y_train, x_test, y_test = import_operator_data(x_train, y_train, x_test, y_test)
 
     x_train = x_train.reshape(len(x_train), 1, 28, 28)
     x_train = x_train.astype("float32") / 255

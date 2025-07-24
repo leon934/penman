@@ -6,6 +6,8 @@ class Pooling():
         self.stride = pooling_shape
 
     def forward(self, input_matrix: np.array):
+        # applies max pooling
+
         if input_matrix.shape[1] % self.stride or input_matrix.shape[2] % self.stride:
             raise "Pooling where the stride does not evenly fit into matrix is not allowed."
 

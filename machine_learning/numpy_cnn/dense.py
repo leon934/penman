@@ -20,6 +20,9 @@ class Dense():
 
     def forward(self, input: np.array):
         self.input = input
+
+        print(np.dot(self.weights, self.input).shape)
+
         return np.dot(self.weights, self.input) + self.bias
     
     def backward(self, output_grad, learning_rate):
