@@ -164,6 +164,6 @@ class Convolution():
         self.v_t_bias   = self.v_t_bias / (1 - self.B_2 ** self.t)
 
         self.kernels -= learning_rate * self.m_t_weight / (np.sqrt(self.v_t_weight) + eps)
-        self.bias -= learning_rate * self.v_t_weight / (np.sqrt(self.v_t_bias) + eps)
+        self.bias -= learning_rate * self.m_t_bias / (np.sqrt(self.v_t_bias) + eps)
 
         return input_gradient

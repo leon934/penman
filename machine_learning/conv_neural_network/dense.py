@@ -48,7 +48,7 @@ class Dense():
         # self.bias -= learning_rate * output_grad
 
         self.weights -= learning_rate * self.m_t_weight / (np.sqrt(self.v_t_weight) + eps)
-        self.bias -= learning_rate * self.v_t_weight / (np.sqrt(self.v_t_bias) + eps)
+        self.bias -= learning_rate * self.m_t_bias / (np.sqrt(self.v_t_bias) + eps)
 
         return input_grad
     
