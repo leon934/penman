@@ -22,6 +22,17 @@ class Convolution():
 
         self.bias = np.zeros(self.output_shape, dtype=np.float32)
 
+        # Adam optimizer parameters; they start at 0 since there shouldn't be momentum/velocity.
+        self.m_t_weight = 0
+        self.v_t_weight = 0
+        self.m_t_bias = 0
+        self.v_t_bias = 0
+
+        self.t = 0
+
+        self.B_1 = 0.9
+        self.B_2 = 0.999
+
     def init_kernel(self, input_size: tuple[int], kernel_size: int, kernel_count: int) -> list:
         '''
         The initialization is done with Xavier initialization, since it works better with sigmoid activation functions.
@@ -135,7 +146,24 @@ class Convolution():
                 kernels_gradient[i, j] = self.conv(self.input[j], output_gradient[i])
                 input_gradient[j] += self.conv(output_gradient[i], self.kernels[i, j], full_conv=True, do_conv=True)
 
-        self.kernels -= learning_rate * kernels_gradient
-        self.bias -= learning_rate * output_gradient
+        # Calculates new Adam optimizer parameters to account for momentum.
+        eps = 1e-9
+        self.t += 1
+
+        self.m_t_weight = self.B_1 * self.m_t_weight + (1 - self.B_1) * kernels_gradient
+        self.v_t_weight = self.B_2 * self.v_t_weight + (1 - self.B_2) * kernels_gradient ** 2
+
+        self.m_t_bias = self.B_1 * self.m_t_bias + (1 - self.B_1) * output_gradient
+        self.v_t_bias = self.B_2 * self.v_t_bias + (1 - self.B_2) * output_gradient ** 2
+
+        # Correction to fix initial bias towards 0.
+        self.m_t_weight = self.m_t_weight / (1 - self.B_1 ** self.t)
+        self.v_t_weight = self.v_t_weight / (1 - self.B_2 ** self.t)
+
+        self.m_t_bias   = self.m_t_bias / (1 - self.B_1 ** self.t)
+        self.v_t_bias   = self.v_t_bias / (1 - self.B_2 ** self.t)
+
+        self.kernels -= learning_rate * self.m_t_weight / (np.sqrt(self.v_t_weight) + eps)
+        self.bias -= learning_rate * self.v_t_weight / (np.sqrt(self.v_t_bias) + eps)
 
         return input_gradient

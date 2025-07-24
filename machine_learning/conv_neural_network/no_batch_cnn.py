@@ -88,16 +88,13 @@ def main():
                 output = layer.forward(output)
 
             loss += cross_entropy(y, output)
-
             grad = cross_entropy_prime(y, output)
 
-            # The cross_entropy prime function simplifies out the softmax portion when using cross entropy, so there is no need to include it in the iteration.
             for layer_idx in range(len(layers) - 2, -1, -1):
                 layer = layers[layer_idx]
                 grad = layer.backward(grad, learning_rate)
 
         curr_error = loss / len(x_train)
-        
         print(f"\n Epoch {e}'s error = {curr_error}")
 
         accuracy = 0

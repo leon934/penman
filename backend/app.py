@@ -19,14 +19,18 @@ from utils.image_processing import transform_image, process_image
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins='*', methods=['GET', 'POST', 'OPTIONS'], allow_headers=['Content-Type'])
 
-# TODO: Remove this when the code is in the EC2 instance; creating a session isn't required (i think).
-session = boto3.Session(
-    aws_access_key_id=os.getenv('ACCESS_KEY'),
-    aws_secret_access_key=os.getenv('SECRET_ACCESS_KEY'),
-    aws_session_token=os.getenv('SESSION_TOKEN')
-)
+try:
+    session = boto3.Session()
+except Exception as e:
+    print(f"Got error\n{e}\nwhen trying to create session without credentials. Falling back to credentials. If you are on an EC2 instance, validate IAM roles.")
+
+    session = boto3.Session(
+        aws_access_key_id=os.getenv('ACCESS_KEY'),
+        aws_secret_access_key=os.getenv('SECRET_ACCESS_KEY'),
+        aws_session_token=os.getenv('SESSION_TOKEN')
+    )
 
 bucket = "penman-lln"
 s3 = session.resource('s3')
@@ -69,9 +73,7 @@ async def predict():
     key = f"data/equation/equation_{current_time}.png"
 
     # Uploads to bucket asynchronously to decrease latency.
-    asyncio.create_task(asyncio.to_thread(upload(buffer, key)))
-
-    # print(image_data)
+    # asyncio.create_task(asyncio.to_thread(upload(buffer, key)))
 
     # Performs image transformations by cutting up, stretching, and morphing data.
     tokens = process_image(image)
@@ -134,5 +136,5 @@ async def save_image():
 
     return jsonify(), 400
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5001, debug=True)
