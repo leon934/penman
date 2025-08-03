@@ -13,8 +13,8 @@ env:
   ECS_CLUSTER: "penman-ecs"
   ECS_SERVICE: "penman-prod-service-ns2x42ro"
   ECS_TASK_DEFINITION: "penman-prod"
-  CONTAINER_BACKEND_NAME: "penman-backend"
-  CONTAINER_FRONTEND_NAME: "penman-frontend"
+  CONTAINER_BACKEND_NAME: "backend-container"
+  CONTAINER_FRONTEND_NAME: "frontend-container"
 
 jobs:
   push-to-ecr:
