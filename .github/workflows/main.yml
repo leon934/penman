@@ -21,8 +21,8 @@ jobs:
     name: Build and upload to AWS ECR
     runs-on: ubuntu-latest
     outputs:
-      backend_image: ${{ steps.build-backend-image.outputs.backend_image }}
-      frontend_image: ${{ steps.build-frontend-image.outputs.frontend_image }}
+      backend_image_uri: ${{ steps.build-backend-image.outputs.backend_image_uri }}
+      frontend_image_uri: ${{ steps.build-frontend-image.outputs.frontend_image_uri }}
 
     permissions:
       contents: read
@@ -87,7 +87,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ env.CONTAINER_FRONTEND_NAME }},${{ env.CONTAINER_BACKEND_NAME }}
-          image: ${{ needs.push-to-ecr.outputs.frontend_image }},${{ needs.push-to-ecr.outputs.backend_image }}
+          image: ${{ needs.push-to-ecr.outputs.frontend_image_uri }},${{ needs.push-to-ecr.outputs.backend_image_uri }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
