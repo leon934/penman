@@ -1,0 +1,106 @@
+name: CI/CD Pipeline for AWS CS
+
+on:
+  push:
+    branches:
+      - main
+      - test-branch
+
+env:
+  AWS_REGION: "us-east-2"
+  ECR_REPO_BACKEND: "penman-backend"
+  ECR_REPO_FRONTEND: "penman-frontend"
+  ECS_CLUSTER: "penman-ecs"
+  ECS_SERVICE: "penman-prod-service-ns2x42ro"
+  ECS_TASK_DEFINITION: "penman-prod"
+  CONTAINER_BACKEND_NAME: "backend-container"
+  CONTAINER_FRONTEND_NAME: "frontend-container"
+
+jobs:
+  push-to-ecr:
+    name: Build and upload to AWS ECR
+    runs-on: ubuntu-latest
+    outputs:
+      backend_image_uri: ${{ steps.build-backend-image.outputs.backend_image_uri }}
+      frontend_image_uri: ${{ steps.build-frontend-image.outputs.frontend_image_uri }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout existing code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::307946643646:role/github-actions-deployer-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log into AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up and push backend image to ECR
+        id: build-backend-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPO_BACKEND:$IMAGE_TAG ./backend
+          docker push $ECR_REGISTRY/$ECR_REPO_BACKEND:$IMAGE_TAG
+          echo "backend_image_uri=$ECR_REGISTRY/$ECR_REPO_BACKEND:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Set up and push frontend image to ECR
+        id: build-frontend-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG ./frontend
+          docker push $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG
+          echo "frontend_image_uri=$ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG" >> $GITHUB_OUTPUT
+  deploy-to-ecs:
+    name: Deploy back-end and front-end images to ECS.
+    runs-on: ubuntu-latest
+    needs: push-to-ecr
+
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::307946643646:role/github-actions-deployer-role
+          aws-region: ${{ env.AWS_REGION }}
+    
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+    
+      - name: Render task definition with new frontend image
+        id: render-frontend-container
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_FRONTEND_NAME }}
+          image: ${{ needs.push-to-ecr.outputs.frontend_image_uri }}
+
+      - name: Render task definition with new backend image
+        id: render-backend-container
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-frontend-container.outputs.task-definition }}
+          container-name: ${{ env.CONTAINER_BACKEND_NAME }}
+          image: ${{ needs.push-to-ecr.outputs.backend_image_uri }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-backend-container.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
