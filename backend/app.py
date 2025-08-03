@@ -21,16 +21,16 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, origins='*', methods=['GET', 'POST', 'OPTIONS'], allow_headers=['Content-Type'])
 
-try:
-    session = boto3.Session()
-except Exception as e:
-    print(f"Got error\n{e}\nwhen trying to create session without credentials. Falling back to credentials. If you are on an EC2 instance, validate IAM roles.")
-
+if os.getenv('ACCESS_KEY'):
+    print("Found environment variable credentials. Using them to create session.")
     session = boto3.Session(
         aws_access_key_id=os.getenv('ACCESS_KEY'),
         aws_secret_access_key=os.getenv('SECRET_ACCESS_KEY'),
         aws_session_token=os.getenv('SESSION_TOKEN')
     )
+else:
+    print("No environment variable credentials found. Relying on IAM role.")
+    session = boto3.Session()
 
 bucket = "penman-lln"
 s3 = session.resource('s3')
