@@ -21,8 +21,8 @@ jobs:
     name: Build and upload to AWS ECR
     runs-on: ubuntu-latest
     outputs:
-      backend_image: ${{ steps.build-image-backend.outputs.backend_image_uri }}
-      frontend_image: ${{ steps.build-image-frontend.outputs.frontend_image_uri }}
+      backend_image: ${{ steps.build-backend-image.outputs.backend_image_uri }}
+      frontend_image: ${{ steps.build-frontend-image.outputs.frontend_image_uri }}
 
     permissions:
       contents: read
@@ -60,7 +60,7 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG ./frontend
           docker push $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG
-          echo "backend_image_uri=$ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "frontend_image_uri=$ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG" >> $GITHUB_OUTPUT
   deploy-to-ecs:
     name: Deploy back-end and front-end images to ECS.
     runs-on: ubuntu-latest
@@ -80,17 +80,6 @@ jobs:
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
-
-      - name: Debug variables
-        run: |
-          echo "Container Frontend Name: [${{ env.CONTAINER_FRONTEND_NAME }}]"
-          echo "Container Backend Name: [${{ env.CONTAINER_BACKEND_NAME }}]"
-          echo "Combined Container Names: [${{ env.CONTAINER_FRONTEND_NAME }},${{ env.CONTAINER_BACKEND_NAME }}]"
-          echo "Frontend Image URI: [${{ needs.push-to-ecr.outputs.frontend_image }}]"
-          echo "Backend Image URI: [${{ needs.push-to-ecr.outputs.backend_image }}]"
-          echo "--- Contents of task-definition.json ---"
-          cat task-definition.json
-          echo "----------------------------------------"
     
       - name: Render task definition with new images
         id: render-task-definition
