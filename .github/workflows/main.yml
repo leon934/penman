@@ -98,7 +98,7 @@ jobs:
           image: ${{ needs.push-to-ecr.outputs.backend_image_uri }}
 
       - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-backend-container.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
