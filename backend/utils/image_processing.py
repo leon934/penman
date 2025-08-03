@@ -69,10 +69,8 @@ def harsh_gamma_enhance(data, gamma=0.3, target_max=255):
     
     if np.any(nonzero_mask):
         nonzero_vals = data[nonzero_mask]
-        # Normalize to [0,1]
+
         normalized = (nonzero_vals - nonzero_vals.min()) / (nonzero_vals.max() - nonzero_vals.min())
-        
-        # Apply harsh gamma (0.3 is very aggressive)
         gamma_corrected = np.power(normalized, gamma)
         
         result[nonzero_mask] = gamma_corrected * target_max

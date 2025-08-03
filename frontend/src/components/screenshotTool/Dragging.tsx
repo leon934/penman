@@ -19,8 +19,6 @@ function blobToDataURL(blob: Blob) {
     })
 }
 
-
-
 export class ScreenshotDragging extends StateNode {
     static override id = "dragging";
 
@@ -65,7 +63,7 @@ export class ScreenshotDragging extends StateNode {
                     imageData: dataURL
                 }
 
-                const apiURL = `${process.env.NEXT_PUBLIC_API_URL}/predict`
+                const apiURL = `${process.env.NEXT_PUBLIC_API_URL}/api/predict`
                 const request = {
                     method: "POST",
                     headers: {

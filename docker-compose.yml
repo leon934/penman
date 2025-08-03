@@ -1,14 +1,14 @@
 services:
   backend:
     build: ./backend
-    container_name: penman-backend-server
+    container_name: backend
     ports:
-      - "5000:5000"
+      - "5001:5001"
     env_file:
       - ./backend/.env
   frontend:
     build: ./frontend
-    container_name: penman-nextjs-frontend
+    container_name: frontend
     ports:
       - "3000:3000"
     env_file:

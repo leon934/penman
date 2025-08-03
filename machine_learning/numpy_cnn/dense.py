@@ -1,5 +1,4 @@
 import numpy as np
-from typing import List
 
 class Dense():
     def __init__(self, input_size: int, output_size: int):
