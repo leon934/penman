@@ -80,6 +80,17 @@ jobs:
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+
+      - name: Debug variables
+        run: |
+          echo "Container Frontend Name: [${{ env.CONTAINER_FRONTEND_NAME }}]"
+          echo "Container Backend Name: [${{ env.CONTAINER_BACKEND_NAME }}]"
+          echo "Combined Container Names: [${{ env.CONTAINER_FRONTEND_NAME }},${{ env.CONTAINER_BACKEND_NAME }}]"
+          echo "Frontend Image URI: [${{ needs.push-to-ecr.outputs.frontend_image }}]"
+          echo "Backend Image URI: [${{ needs.push-to-ecr.outputs.backend_image }}]"
+          echo "--- Contents of task-definition.json ---"
+          cat task-definition.json
+          echo "----------------------------------------"
     
       - name: Render task definition with new images
         id: render-task-definition
