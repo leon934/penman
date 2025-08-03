@@ -20,6 +20,9 @@ jobs:
   push-to-ecr:
     name: Build and upload to AWS ECR
     runs-on: ubuntu-latest
+    outputs:
+      backend_image: ${{ steps.build-image-backend.outputs.backend_image_uri }}
+      frontend_image: ${{ steps.build-image-frontend.outputs.frontend_image_uri }}
 
     permissions:
       contents: read
@@ -68,6 +71,12 @@ jobs:
       id-token: write
     
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::307946643646:role/github-actions-deployer-role
+          aws-region: ${{ env.AWS_REGION }}
+    
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
@@ -78,12 +87,12 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ env.CONTAINER_NAME_FRONTEND }},${{ env.CONTAINER_NAME_BACKEND }}
-          image: ${{ steps.build-image-frontend.outputs.frontend_image_uri }},${{ steps.build-image-backend.outputs.backend_image_uri }}
+          image: ${{ needs.push-to-ecr.outputs.frontend_image }},${{ needs.push-to-ecr.outputs.backend_image }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          task-definition: ${{ steps.render-task-definition.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true 
